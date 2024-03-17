@@ -5,9 +5,8 @@ import (
 	"github.com/dinhtrung/smoking-counter/pkg/fiber/services"
 	"github.com/dinhtrung/smoking-counter/pkg/fiber/shared"
 	"github.com/golang-jwt/jwt/v5"
-	"log/slog"
-
 	"golang.org/x/crypto/bcrypt"
+	"log/slog"
 )
 
 // UserServiceBuntDB act as a placeholders for demo purpose of how to create the implementation for this service
