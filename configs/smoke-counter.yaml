@@ -1,0 +1,5 @@
+http:
+  listen: 127.0.0.1:19060
+# Embed database path
+buntdb:
+  path: runtime/smoke-counter.db
