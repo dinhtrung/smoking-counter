@@ -13,10 +13,11 @@
         <div class="alert alert-success">
           @if (account) {
             <span id="home-logged-message" jhiTranslate="home.logged.message" [translateValues]="{ username: account.login }"
-              >You are logged in as user &quot;{{ account.login }}&quot;.</span
-            >
+              >You are logged in as user &quot;{{ account.login }}&quot;.</span>
           }
         </div>
+        <div class="alert alert-info" [innerHTML]="smokes | json"></div>
+        <button class="btn btn-danger btn-lg" (click)="addSmoke()">Add Smoke</button>
       } @else {
         <div class="alert alert-warning">
           <span jhiTranslate="global.messages.info.authenticated.prefix">If you want to </span>
