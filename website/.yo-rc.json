@@ -1,0 +1,23 @@
+{
+  "generator-jhipster": {
+    "baseName": "website",
+    "clientFramework": "angular",
+    "clientTestFrameworks": [],
+    "clientTheme": "darkly",
+    "clientThemeVariant": "primary",
+    "creationTimestamp": 1710726198646,
+    "devServerPort": 4200,
+    "enableTranslation": true,
+    "entities": [],
+    "jhipsterVersion": "8.1.0",
+    "languages": ["en", "vi"],
+    "microfrontend": null,
+    "microfrontends": [],
+    "monorepository": true,
+    "nativeLanguage": "en",
+    "skipCommitHook": true,
+    "skipServer": true,
+    "testFrameworks": [],
+    "withAdminUi": true
+  }
+}
