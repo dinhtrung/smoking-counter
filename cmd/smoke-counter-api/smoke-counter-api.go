@@ -9,8 +9,8 @@ import (
 	"github.com/dinhtrung/smoking-counter/internal/app/smoke-counter/web/rest"
 	authJwt "github.com/dinhtrung/smoking-counter/pkg/fiber/authjwt"
 	authApi "github.com/dinhtrung/smoking-counter/pkg/fiber/authjwt/web/rest"
-
 	"github.com/gofiber/fiber/v2"
+
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -64,6 +64,13 @@ func main() {
 	authJwt.SetupAuthJWT(srv, app.Config.MustString("security.jwt-secret"), app.Config.Strings("security.skip-auth")...)
 	authJwt.SetupRoutes(srv)
 
+	// main application endpoints
+	smokeAPI := rest.NewSmokeRestAPI(impl.NewSmokeServiceBuntDB(app.BuntDB))
+	srv.Get("/api/smokes", smokeAPI.GetAll)
+	srv.Post("/api/smokes", smokeAPI.Create)
+	srv.Delete("/api/smokes", smokeAPI.Delete)
+
+	// bring the server up
 	if app.Config.String("https.listen") != "" {
 		log.Fatal(srv.ListenTLS(app.Config.String("https.listen"), app.Config.MustString("https.cert"), app.Config.MustString("https.key")))
 	} else {
@@ -94,9 +101,4 @@ func configureFiber(srv *fiber.App) {
 	srv.Get("/management/health", func(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusOK, "ok")
 	})
-	// main application endpoints
-	smokeAPI := rest.NewSmokeRestAPI(impl.NewSmokeServiceBuntDB(app.BuntDB))
-	srv.Get("/smokes", smokeAPI.GetAll)
-	srv.Get("/smokes", smokeAPI.GetAll)
-	srv.Get("/smokes", smokeAPI.GetAll)
 }

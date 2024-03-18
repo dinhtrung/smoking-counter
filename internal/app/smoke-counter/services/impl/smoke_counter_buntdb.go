@@ -5,6 +5,7 @@ import (
 	"github.com/dinhtrung/smoking-counter/internal/app/smoke-counter/services"
 	"github.com/dinhtrung/smoking-counter/internal/app/smoke-counter/web/dto"
 	"github.com/tidwall/buntdb"
+	"log/slog"
 	"strings"
 	"time"
 )
@@ -21,8 +22,8 @@ func NewSmokeServiceBuntDB(db *buntdb.DB) services.SmokeService {
 
 func (s *SmokeServiceBuntDB) GetAll(user string) []*dto.DailySmokingDTO {
 	var res []*dto.DailySmokingDTO
-	s.db.View(func(tx *buntdb.Tx) error {
-		tx.AscendKeys(user+":", func(key, value string) bool {
+	if err := s.db.View(func(tx *buntdb.Tx) error {
+		return tx.AscendKeys(user+":*", func(key, value string) bool {
 			events := strings.Split(value, ",")
 			row := &dto.DailySmokingDTO{
 				Date:   key[len(user)+1:],
@@ -32,8 +33,9 @@ func (s *SmokeServiceBuntDB) GetAll(user string) []*dto.DailySmokingDTO {
 			res = append(res, row)
 			return true
 		})
-		return nil
-	})
+	}); err != nil {
+		slog.Error("unable to retrieve data", "error", err, "user", user)
+	}
 	return res
 }
 
@@ -42,30 +44,72 @@ func (s *SmokeServiceBuntDB) Create(user string, hour string) (*dto.DailySmoking
 	if err != nil {
 		return nil, err
 	}
-	key := user + ":" + time.Now().Format("2006-01-02")
+	dt := time.Now().Format("2006-01-02")
+	key := user + ":" + dt
 	val := t.Format("15:04")
-	s.db.Update(func(tx *buntdb.Tx) error {
+	var events []string
+	if err := s.db.Update(func(tx *buntdb.Tx) error {
 		existsValue, err := tx.Get(key)
 		if err != nil && !errors.Is(err, buntdb.ErrNotFound) {
 			return err
 		}
-		events := strings.Split(existsValue, ",")
+		events = strings.Split(existsValue, ",")
 		events = append(events, val)
-		_, _, err = tx.Set(key, strings.Join(events, ","), nil)
+		val = strings.Join(events, ",")
+		_, _, err = tx.Set(key, val, nil)
 		return err
-	})
-	//TODO implement me
-	panic("implement me")
+	}); err != nil {
+		return nil, err
+	}
+	return &dto.DailySmokingDTO{
+		Date:   dt,
+		Events: events,
+		Count:  len(events),
+	}, nil
+}
+
+func (s *SmokeServiceBuntDB) Delete(user, hour string) error {
+	t, err := time.Parse("15:04", hour)
+	if err != nil {
+		return err
+	}
+	dt := time.Now().Format("2006-01-02")
+	key := user + ":" + dt
+	var events []string
+	if err := s.db.View(func(tx *buntdb.Tx) error {
+		existsValue, err := tx.Get(key)
+		if err != nil && !errors.Is(err, buntdb.ErrNotFound) {
+			return err
+		}
+		events = strings.Split(existsValue, ",")
+		return nil
+	}); err != nil {
+		return err
+	}
+	val := t.Format("15:04")
+	var newEvents []string
+	for _, event := range events {
+		if event != val {
+			newEvents = append(newEvents, event)
+		}
+	}
+	if err := s.db.Update(func(tx *buntdb.Tx) error {
+		val = strings.Join(newEvents, ",")
+		_, _, err = tx.Set(key, val, nil)
+		return err
+	}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *SmokeServiceBuntDB) DeleteAll(user string) error {
 	var keys []string
 	if err := s.db.View(func(tx *buntdb.Tx) error {
-		tx.AscendKeys(user+":", func(key, value string) bool {
+		return tx.AscendKeys(user+":", func(key, value string) bool {
 			keys = append(keys, key)
 			return true
 		})
-		return nil
 	}); err != nil {
 		return err
 	}

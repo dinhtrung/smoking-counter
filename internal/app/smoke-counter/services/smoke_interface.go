@@ -11,6 +11,9 @@ type SmokeService interface {
 	// Create a new Smoke record for current user and hour of today
 	Create(user, hour string) (*dto.DailySmokingDTO, error)
 
+	// Delete an existing Smoke record for a given user based on date and hour
+	Delete(user, hour string) error
+
 	// DeleteAll existing Smoke record for a given user
 	DeleteAll(user string) error
 

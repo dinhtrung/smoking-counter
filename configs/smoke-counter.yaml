@@ -3,3 +3,13 @@ http:
 # Embed database path
 buntdb:
   path: runtime/smoke-counter.db
+
+# Security mechanism, here we use Json Web Token as the authencation method
+security:
+  # secret to hash the Authorization Token
+  jwt-secret: WXpFeE5EVmlOamN4T1RJNFpUTXhNVFl4TVRKbE5ESm1OV1V3TTJVME1ERWdJQzBLCg==
+  # routes that are skip from Json Web Token, let every one to access
+  skip-auth:
+    # File upload and download endpoint
+    - /api/file-download
+    - /api/file-upload
